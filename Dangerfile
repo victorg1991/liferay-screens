@@ -1,6 +1,6 @@
 # Warn about develop branch
 current_branch = env.request_source.pr_json["base"]["ref"]
-warn("Please target PRs to `develop` branch") if current_branch != "develop" && current_branch != "swift-3.0"
+warn("Please target PRs to `develop` branch") if current_branch != "develop" && current_branch
 
 # Sometimes it's a README fix, or something like that - which isn't relevant for
 declared_trivial = github.pr_title.include? "#trivial"
