@@ -36,5 +36,5 @@ script:
          set -o pipefail
          travis_retry xcodebuild clean test -workspace LiferayScreens.xcworkspace -scheme LiferayScreens -destination "platform=iOS Simulator,name=iPhone SE" | xcpretty
     elif [ "${DANGER}" -eq 1 ]; then
-         bundle exec danger
+         bundle exec danger --verbose
     fi
