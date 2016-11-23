@@ -9,6 +9,7 @@ env:
   matrix:
     - PLATFORM=iOS
     - PLATFORM=Android
+    - DANGER=1
 
 cache:
   directories:
@@ -19,8 +20,9 @@ before_script:
  - |
    if [ "$PLATFORM" = Android ]; then
         curl -L https://raw.github.com/embarkmobile/android-sdk-installer/version-2/android-sdk-installer | bash /dev/stdin --install=$COMPONENTS --accept=$LICENSES && source ~/.android-sdk-installer/env
-   fi
- 
+   elif [ "${DANGER}" -eq 1 ]; then
+        bundle install
+   fi 
 script:
 - |
    if [ "$PLATFORM" = Android ]; then
@@ -33,4 +35,6 @@ script:
          pod install
          set -o pipefail
          travis_retry xcodebuild clean test -workspace LiferayScreens.xcworkspace -scheme LiferayScreens -destination "platform=iOS Simulator,name=iPhone SE" | xcpretty
+    elif [ "${DANGER}" -eq 1 ]; then
+         bundle exec danger
     fi
