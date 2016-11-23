@@ -6,7 +6,7 @@ warn("Please target PRs to `develop` branch") if current_branch != "develop" && 
 declared_trivial = github.pr_title.include? "#trivial"
 
 # Warn no CHANGELOG
-fail("No CHANGELOG changes made") if !git.modified_files.include?("CHANGELOG.yml") && !declared_trivial
+fail("No CHANGELOG changes made") if !git.modified_files.include?("CHANGELOG.md") && !declared_trivial
 
 # Make it more obvious that a PR is a work in progress and shouldn't be merged yet
 warn("PR is classed as Work in Progress") if github.pr_title.include? "[WIP]"
