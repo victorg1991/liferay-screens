@@ -109,9 +109,12 @@ PODS:
     - YapDatabase/SQLCipher/Core
 
 DEPENDENCIES:
+  - Liferay-iOS-SDK (from `../../../../../Mobile-SDK/liferay-mobile-sdk`)
   - LiferayScreens (from `../../..`)
 
 EXTERNAL SOURCES:
+  Liferay-iOS-SDK:
+    :path: "../../../../../Mobile-SDK/liferay-mobile-sdk"
   LiferayScreens:
     :path: "../../.."
 
@@ -134,6 +137,6 @@ SPEC CHECKSUMS:
   TNRadioButtonGroup: f5fb9b545d8913bbabe6a72ea1fa6fba4d833bb6
   YapDatabase: b1e43555a34a5298e23a045be96817a5ef0da58f
 
-PODFILE CHECKSUM: 531024e0034ddac1afec403674a2483498b4f64d
+PODFILE CHECKSUM: 663acc1791b3e92c1a3cb6ead4941ebe32afc55f
 
 COCOAPODS: 1.1.1

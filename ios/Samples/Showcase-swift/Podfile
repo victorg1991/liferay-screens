@@ -2,5 +2,6 @@ platform :ios, '8.0'
 use_frameworks!
 
 target "LiferayScreens-Showcase-Swift" do
+	pod 'Liferay-iOS-SDK', :path => '../../../../../Mobile-SDK/liferay-mobile-sdk'
     pod 'LiferayScreens', :path => '../../..'
 end

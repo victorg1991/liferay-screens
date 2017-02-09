@@ -18,10 +18,47 @@ import Foundation
 	import LROAuth
 #endif
 
+public class LRCookieBlockCallback : NSObject, LRCookieCallback {
 
-@objc open class SessionContext: NSObject {
+	public func onCookieSuccess(_ session: LRSession!) {
+		callback(session, nil)
+		let store = LiferayServerContext.factory.createCredentialsStore(AuthType.basic)
+		SessionContext.currentSession = session
+	}
+
+	public func onCookieFailure(_ error: Error!) {
+		callback(nil, error)
+	}
+
+	let callback: (LRSession?, Error?) -> Void
+
+	init(callback: @escaping (LRSession?, Error?) -> Void) {
+		self.callback = callback
+	}
+
+}
+
+
+@objc open class SessionContext: NSObject, LRCookieCallback {
+
+	open static var currentSession: LRSession?
 
 	open static var currentContext: SessionContext?
+
+	public func onCookieSuccess(_ session: LRSession!) {
+
+		let store = LiferayServerContext.factory.createCredentialsStore(AuthType.basic)
+		let contxt = SessionContext.init(session: session, attributes: [:], store: store)
+
+		SessionContext.currentContext = contxt
+
+		SessionContext.currentSession = session
+
+	}
+
+	public func onCookieFailure(_ error: Error!) {
+		
+	}
 
 	open let session: LRSession
 	open let user: User
@@ -52,6 +89,12 @@ import Foundation
 		credentialsStorage = CredentialsStorage(store: store)
 
 		super.init()
+	}
+
+	public func loginTest() {
+		let session11 = SessionContext.createEphemeralBasicSession("admin@liferay.com", "admin123")
+
+		LRCookieSignIn.signIn(with: session11, callback: self)
 	}
 
 
@@ -133,6 +176,43 @@ import Foundation
 				store: store)
 
 		return session!
+	}
+
+	@discardableResult
+	open class func loginWithCookie(
+		authentication: LRCookieAuthentication,
+		userAttributes: [String:AnyObject]) -> LRSession {
+
+		let session = LRSession(
+			server: LiferayServerContext.server,
+			authentication: authentication)
+
+		let store = LiferayServerContext.factory.createCredentialsStore(AuthType.cookie)
+
+		SessionContext.currentContext =
+			LiferayServerContext.factory.createSessionContext(
+				session: session!,
+				attributes: userAttributes,
+				store: store)
+
+		return session!
+	}
+
+	open class func reloadCookieAuth(session: LRSession? = nil, callback: LRCookieBlockCallback) {
+		var session = session
+		if session == nil {
+			session = createSessionFromCurrentSession()
+		}
+
+		LRCookieSignIn.signIn(with: session, callback: LRCookieBlockCallback { session, error in
+			if let session = session {
+				SessionContext.loginWithCookie(authentication: session.authentication as! LRCookieAuthentication, userAttributes: [:])
+				callback.callback(session, nil)
+			}
+			else {
+				callback.callback(nil, error)
+			}
+		})
 	}
 
 	open func createRequestSession() -> LRSession {
@@ -220,6 +300,9 @@ import Foundation
 	}
 
 	open class func logout() {
+		if let _ = SessionContext.currentContext?.session.authentication as? LRCookieAuthentication {
+			HTTPCookieStorage.shared.removeCookies(since: .distantPast)
+		}
 		SessionContext.currentContext = nil
 	}
 

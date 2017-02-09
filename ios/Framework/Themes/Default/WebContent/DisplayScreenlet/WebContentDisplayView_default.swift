@@ -14,12 +14,44 @@
 import UIKit
 
 
-open class WebContentDisplayView_default: BaseScreenletView, WebContentDisplayViewModel {
+open class WebContentDisplayView_default: BaseScreenletView, WebContentDisplayViewModel, UIWebViewDelegate {
 
 
 	//MARK: Outlets
 
-	@IBOutlet open var webView: UIWebView?
+	@IBOutlet open var webView: UIWebView? {
+		didSet {
+			webView!.delegate = self
+		}
+	}
+
+	public var prueba = false
+
+	public func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebViewNavigationType) -> Bool {
+
+
+//		let dummyRequest = NSMutableURLRequest(url: URL(string:"")!)
+//		SessionContext.currentSession?.authentication.authenticate(dummyRequest)
+//
+//		for (key, value) in dummyRequest.allHTTPHeaderFields! {
+//			request.addValue(value, forHTTPHeaderField: key)
+//		}
+
+//		if (!prueba) {
+//			prueba = true
+//			let request1 = (request as NSURLRequest).mutableCopy() as! NSMutableURLRequest
+//			SessionContext.currentSession?.authentication.authenticate(request1)
+//
+//			webView.loadRequest(request1 as URLRequest)
+//			
+//
+//			return false
+//		}
+
+		return true
+	}
+
+
 
 	override open var progressMessages: [String:ProgressMessages] {
 		return [
@@ -47,9 +79,44 @@ open class WebContentDisplayView_default: BaseScreenletView, WebContentDisplayVi
 			return ""
 		}
 		set {
+
 			let styledHtml = "<style>\(styles)</style><div class=\"MobileCSS\">\(newValue ?? "")</div>"
 
-			webView!.loadHTMLString(styledHtml, baseURL: URL(string:LiferayServerContext.server))
+			let newHTML = styledHtml.replacingOccurrences(of: "/documents", with: "\(LiferayServerContext.server)documents")
+
+
+//			let dummyRequest = NSMutableURLRequest(url: URL(string:"someurl.com")!)
+//			SessionContext.currentSession?.authentication.authenticate(dummyRequest)
+//
+//			//let cookies = HTTPCookie.cookies(withResponseHeaderFields: dummyRequest.allHTTPHeaderFields!, for: request.url!)
+//
+//			let cookieString = dummyRequest.allHTTPHeaderFields!["Cookie"]!.components(separatedBy: ";")
+//
+//			var cookies = [HTTPCookie]()
+//			for cookie in cookieString {
+//				if cookie.isEmpty {
+//					continue
+//				}
+//				let nameValue = cookie.components(separatedBy: "=")
+//				var dict = [HTTPCookiePropertyKey: Any]()
+//
+//				dict[HTTPCookiePropertyKey.name] = nameValue[0]
+//				dict[HTTPCookiePropertyKey.value] = nameValue[1]
+//				dict[HTTPCookiePropertyKey.domain] = "screens-challenge.liferay.org.es"
+//				dict[HTTPCookiePropertyKey.path] = "/"
+//				dict[HTTPCookiePropertyKey.expires] = nil
+//				let realCookie = HTTPCookie(properties: dict)!
+//				cookies.append(realCookie)
+//			}
+//
+//			//HTTPCookieStorage.shared.cookieAcceptPolicy = .always
+//
+//			cookies.forEach { HTTPCookieStorage.shared.setCookie($0) }
+//
+//			print(cookies)
+//			let cookies1 = (SessionContext.currentSession!.authentication as! LRCookieAuthentication).cookies
+//			cookies1?.forEach { print($0);HTTPCookieStorage.shared.setCookie($0) }
+			webView!.loadHTMLString(newHTML, baseURL: URL(string:LiferayServerContext.server))
 		}
 	}
 

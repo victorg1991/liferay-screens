@@ -13,6 +13,7 @@
  */
 import UIKit
 import LiferayScreens
+import LRMobileSDK;
 
 
 class LoginViewController: UIViewController, LoginScreenletDelegate {
@@ -115,7 +116,7 @@ class LoginViewController: UIViewController, LoginScreenletDelegate {
 	
 	fileprivate func showLogged(animated: Bool) {
 		if SessionContext.isLoggedIn {
-			loggedUsername?.text = SessionContext.currentContext?.basicAuthUsername
+			loggedUsername?.text = SessionContext.currentContext?.user.email
 		}
 
 		UIView.animate(withDuration: animated ? 0.5 : 0.0, animations: { () -> Void in

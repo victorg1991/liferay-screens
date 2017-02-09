@@ -38,6 +38,13 @@ extension UIImageView {
 			var optionsInfoFinal = optionsInfo ?? []
 			optionsInfoFinal.append(.forceRefresh)
 			optionsInfoFinal.append(.transition(.fade(0.2)))
+			optionsInfoFinal.append(.requestModifier(AnyModifier(modify: {
+					request -> URLRequest? in
+				let request1 = (request as NSURLRequest).mutableCopy() as! NSMutableURLRequest
+				SessionContext.currentSession?.authentication.authenticate(request1)
+
+				return request1 as URLRequest
+			})))
 
 			self.kf.setImage(with: URL, placeholder: placeholderImage, options: optionsInfoFinal)
 

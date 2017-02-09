@@ -28,6 +28,8 @@ open class ImageGalleryScreenletController : UIViewController, ImageGalleryScree
 				LiferayServerContext.longPropertyForKey("imageGalleryRepositoryId")
 			screenlet?.folderId =
 				LiferayServerContext.longPropertyForKey("imageGalleryFolderId")
+
+			screenlet?.offlinePolicy = CacheStrategyType.remoteOnly.rawValue
 		}
 	}
 

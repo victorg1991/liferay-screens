@@ -74,6 +74,8 @@ open class LoginScreenlet: BaseScreenlet, BasicAuthBasedType {
 		}
 	}
 
+	@IBInspectable open var cookieAuth: Bool = false
+
 	@IBInspectable open var OAuthConsumerSecret: String = "" {
 		didSet {
 			copyAuthType()
@@ -101,7 +103,9 @@ open class LoginScreenlet: BaseScreenlet, BasicAuthBasedType {
 	}
 
 	override open func createInteractor(name: String, sender: AnyObject?) -> Interactor? {
-
+		if cookieAuth {
+			return createLoginCookieInteractor()
+		}
 		switch name {
 		case "login-action", BaseScreenlet.DefaultAction:
 			return createLoginBasicInteractor()
@@ -189,11 +193,44 @@ open class LoginScreenlet: BaseScreenlet, BasicAuthBasedType {
 		return interactor
 	}
 
+	fileprivate func createLoginCookieInteractor() -> LoginCookieInteractor {
+		let interactor = LoginCookieInteractor(screenlet: self, emailAddress: viewModel.userName!, password: viewModel.password!)
+
+		interactor.onSuccess = {
+			self.loginDelegate?.screenlet?(self,
+			                               onLoginResponseUserAttributes: interactor.resultUserAttributes!)
+
+			if let ctx = SessionContext.currentContext, self.saveCredentials {
+				if ctx.storeCredentials() {
+					self.loginDelegate?.screenlet?(self,
+					                               onCredentialsSavedUserAttributes: interactor.resultUserAttributes!)
+				}
+			}
+		}
+
+		interactor.onFailure = {
+			self.loginDelegate?.screenlet?(self, onLoginError: $0)
+		}
+		
+		return interactor
+	}
+
 
 	fileprivate func copyAuthType() {
-		(screenletView as? LoginViewModel)?.authType = StringFromAuthType(
-			(OAuthConsumerKey != "" && OAuthConsumerSecret != "")
-				? AuthType.oAuth : AuthType.basic)
+
+		let authType: AuthType
+
+		if cookieAuth {
+			authType = .cookie
+		}
+		else if OAuthConsumerKey != "" && OAuthConsumerSecret != "" {
+			authType = .oAuth
+		}
+		else {
+			authType = .basic
+		}
+
+		(screenletView as? LoginViewModel)?.authType = StringFromAuthType(authType)
 	}
 
 }

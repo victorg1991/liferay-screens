@@ -41,6 +41,7 @@ import UIKit
 		self.init(screenlet: nil)
 	}
 
+	public var retry = 0
 
 	//MARK: Public methods
 

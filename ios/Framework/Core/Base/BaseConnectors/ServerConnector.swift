@@ -12,6 +12,7 @@
  * details.
  */
 import UIKit
+import LRMobileSDK
 
 
 @objc open class ServerConnector: Operation {
@@ -31,6 +32,11 @@ import UIKit
 
 	}
 
+	var retried = false
+
+	var semaphore: DispatchSemaphore?
+	var currentSession: LRSession?
+
 	open var lastError: NSError?
 
 	internal var onComplete: ((ServerConnector) -> Void)?
@@ -46,6 +52,26 @@ import UIKit
 			if preRun() {
 				if let session = createSession() {
 					doRun(session: session)
+
+					if canBeCookieExpiredError(session: session) && !retried {
+						retried = true
+						self.semaphore = DispatchSemaphore(value: 0)
+						SessionContext.reloadCookieAuth(session: session, callback: LRCookieBlockCallback { (session, error) in
+							if let session = session {
+								self.currentSession = session
+							}
+							else {
+								self.lastError = error! as NSError
+							}
+
+							self.semaphore?.signal()
+						})
+						_ = self.semaphore?.wait(timeout: .distantFuture)
+
+						if let currentSession = currentSession {
+							doRun(session: currentSession)
+						}
+					}
 					postRun()
 				}
 				else {
@@ -124,6 +150,15 @@ import UIKit
 				self.onComplete = nil
 			}
 		}
+	}
+
+	internal func canBeCookieExpiredError(session: LRSession) -> Bool {
+		if let auth = session.authentication {
+			return session.authentication.isKind(of: LRCookieAuthentication.self) &&
+					lastError?.code == 403
+		}
+
+		return false
 	}
 
 }
