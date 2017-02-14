@@ -1,4 +1,4 @@
-Pod::Spec.new do |s|
+Pod::Spec.new do |s|aaaaa
 	s.name         = 'LiferayScreens'
 	s.module_name  = 'LiferayScreens'
 	s.version      = '2.0.1'
