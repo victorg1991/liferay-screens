@@ -79,6 +79,8 @@ open class LoginScreenlet: BaseScreenlet, BasicAuthBasedType {
 		}
 	}
 
+	open var cookieHeaders: [String : String]?
+
 	open var authType: AuthType = .basic
 
 	open var loginDelegate: LoginScreenletDelegate? {
@@ -191,7 +193,7 @@ open class LoginScreenlet: BaseScreenlet, BasicAuthBasedType {
 	}
 
 	fileprivate func createLoginCookieInteractor() -> LoginCookieInteractor {
-		let interactor = LoginCookieInteractor(screenlet: self, emailAddress: viewModel.userName!, password: viewModel.password!)
+		let interactor = LoginCookieInteractor(screenlet: self, emailAddress: viewModel.userName!, password: viewModel.password!, customHeaders:cookieHeaders ?? [:])
 
 		interactor.onSuccess = {
 			self.loginDelegate?.screenlet?(self,

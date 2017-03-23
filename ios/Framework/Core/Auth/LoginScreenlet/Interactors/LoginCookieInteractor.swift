@@ -20,6 +20,7 @@ open class LoginCookieInteractor: Interactor, LRCallback {
 	open let emailAddress: String
 	open let password: String
 	open let companyId: Int64
+	open let customHeaders: [String : String]
 
 	open var cookieSession: LRSession?
 
@@ -27,10 +28,11 @@ open class LoginCookieInteractor: Interactor, LRCallback {
 
 	//MARK: Initializers
 
-	public init(screenlet: BaseScreenlet?, companyId: Int64 = LiferayServerContext.companyId, emailAddress: String, password: String) {
+	public init(screenlet: BaseScreenlet?, companyId: Int64 = LiferayServerContext.companyId, emailAddress: String, password: String, customHeaders: [String : String] = [:]) {
 		self.companyId = companyId
 		self.emailAddress = emailAddress
 		self.password = password
+		self.customHeaders = customHeaders
 
 		super.init(screenlet: screenlet)
 	}
@@ -38,6 +40,7 @@ open class LoginCookieInteractor: Interactor, LRCallback {
 	open override func start() -> Bool {
 		let basicAuth = LRBasicAuthentication(username: emailAddress, password: password)
 		let session = LRSession(server: LiferayServerContext.server, authentication: basicAuth)
+		session?.headers = customHeaders
 		
 		let callback = LRCookieBlockCallback { (session, error) in
 			if let session = session {

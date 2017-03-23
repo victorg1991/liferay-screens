@@ -173,7 +173,10 @@ import Foundation
 	}
 
 	open func createRequestSession() -> LRSession {
-		return LRSession(session: session)
+		let session = LRSession(session: self.session)!
+		session.headers = self.session.headers
+
+		return session
 	}
 
 	open func relogin(_ completed: (([String:AnyObject]?) -> ())?) -> Bool {
