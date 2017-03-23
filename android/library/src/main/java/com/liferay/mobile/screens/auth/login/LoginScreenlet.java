@@ -36,6 +36,8 @@ import com.liferay.mobile.screens.context.LiferayScreensContext;
 import com.liferay.mobile.screens.context.LiferayServerContext;
 import com.liferay.mobile.screens.context.SessionContext;
 import com.liferay.mobile.screens.context.User;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.liferay.mobile.screens.context.storage.CredentialsStorageBuilder.StorageType;
 
@@ -54,6 +56,7 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 	private StorageType credentialsStorage;
 	private String oauthConsumerKey;
 	private String oauthConsumerSecret;
+	private Map<String, String> cookieHeaders = new HashMap<>();
 
 	public LoginScreenlet(Context context) {
 		super(context);
@@ -174,6 +177,14 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 		this.oauthConsumerSecret = oauthConsumerSecret;
 	}
 
+	public Map<String, String> getCookieHeaders() {
+		return cookieHeaders;
+	}
+
+	public void setCookieHeaders(Map<String, String> cookieHeaders) {
+		this.cookieHeaders = cookieHeaders;
+	}
+
 	@Override
 	protected View createScreenletView(Context context, AttributeSet attributes) {
 		TypedArray typedArray = context.getTheme().obtainStyledAttributes(attributes, R.styleable.LoginScreenlet, 0, 0);
@@ -232,7 +243,7 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 	protected void onUserAction(String userActionName, BaseLoginInteractor interactor, Object... args) {
 		if (AuthenticationType.COOKIE.equals(authenticationType)) {
 			LoginViewModel viewModel = getViewModel();
-			interactor.start(viewModel.getLogin(), viewModel.getPassword());
+			interactor.start(viewModel.getLogin(), viewModel.getPassword(), cookieHeaders);
 		} else if (AuthenticationType.BASIC.equals(authenticationType)) {
 			LoginViewModel viewModel = getViewModel();
 			interactor.start(viewModel.getLogin(), viewModel.getPassword(), viewModel.getBasicAuthMethod());

@@ -67,6 +67,7 @@ public class SessionContext {
 		Authentication cookieAuthentication = session.getAuthentication();
 
 		currentUserSession = new SessionImpl(LiferayServerContext.getServer(), cookieAuthentication);
+		currentUserSession.setHeaders(session.getHeaders());
 
 		return currentUserSession;
 	}
@@ -76,7 +77,10 @@ public class SessionContext {
 			throw new IllegalStateException("You need to be logged in to get a session");
 		}
 
-		return new SessionImpl(LiferayServerContext.getServer(), currentUserSession.getAuthentication());
+		Session session = new SessionImpl(LiferayServerContext.getServer(), currentUserSession.getAuthentication());
+		session.setHeaders(currentUserSession.getHeaders());
+
+		return session;
 	}
 
 	public static boolean isLoggedIn() {

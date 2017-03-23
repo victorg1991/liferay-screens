@@ -12,6 +12,7 @@ import com.liferay.mobile.screens.context.LiferayServerContext;
 import com.liferay.mobile.screens.context.SessionContext;
 import com.liferay.mobile.screens.util.EventBusUtil;
 import com.liferay.mobile.screens.util.ServiceProvider;
+import java.util.Map;
 import org.json.JSONObject;
 
 /**
@@ -25,10 +26,12 @@ public class LoginCookieInteractor extends BaseLoginInteractor {
 
 		String login = (String) args[0];
 		String password = (String) args[1];
+		Map<String, String> customHeaders = (Map<String, String>) args[2];
 
 		validate(login, password);
 
 		Session session = SessionContext.createBasicSession(login, password);
+		session.setHeaders(customHeaders);
 
 		Session cookieSession = CookieSignIn.signIn(session);
 
