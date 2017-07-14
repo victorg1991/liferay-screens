@@ -26,6 +26,7 @@ open class ImageUploadDetailView_default: ImageUploadDetailViewBase, UITextViewD
 	override open var image: UIImage? {
 		didSet {
 			imagePreview?.image = image
+			print("hola")
 		}
 	}
 
