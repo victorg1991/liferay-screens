@@ -23,7 +23,6 @@ open class LoginCookieInteractor: Interactor, LRCallback {
 	open let emailAddress: String
 	open let password: String
 	open let companyId: Int64
-	open let challengeResolver: ChallengeResolver?
 
 	open var cookieSession: LRSession?
 
@@ -32,12 +31,11 @@ open class LoginCookieInteractor: Interactor, LRCallback {
 	//MARK: Initializers
 
 	public init(screenlet: BaseScreenlet?, companyId: Int64 = LiferayServerContext.companyId,
-			emailAddress: String, password: String, challengeResolver: ChallengeResolver? = nil) {
+			emailAddress: String, password: String) {
 
 		self.companyId = companyId
 		self.emailAddress = emailAddress
 		self.password = password
-		self.challengeResolver = challengeResolver
 
 		super.init(screenlet: screenlet)
 	}
@@ -59,7 +57,7 @@ open class LoginCookieInteractor: Interactor, LRCallback {
 				((URLSession.AuthChallengeDisposition, URLCredential?) -> Swift.Void)?) -> Swift.Void)? = nil
 
 		// FIXME: Objc nullability annotations in Mobile SDK
-		if let challengeResolver = challengeResolver {
+		if let challengeResolver = SessionContext.challengeResolver {
 			challenge = { challenge, completion in
 				challengeResolver(challenge!, completion!)
 			}

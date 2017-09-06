@@ -22,6 +22,7 @@ import Foundation
 @objc open class SessionContext: NSObject {
 
 	open static var currentContext: SessionContext?
+	open static var challengeResolver: ChallengeResolver?
 
 	open let session: LRSession
 	open let user: User
@@ -161,6 +162,15 @@ import Foundation
 			session = SessionContext.currentContext?.createRequestSession()
 		}
 
+		var challenge: ((URLAuthenticationChallenge?,
+			((URLSession.AuthChallengeDisposition, URLCredential?) -> Swift.Void)?) -> Swift.Void)? = nil
+
+		if let challengeResolver = SessionContext.challengeResolver {
+			challenge = { challenge, completion in
+				challengeResolver(challenge!, completion!)
+			}
+		}
+
 		LRCookieSignIn.signIn(with: session, callback: LRCookieBlockCallback { session, error in
 			if let session = session {
 				SessionContext.loginWithCookie(authentication: session.authentication as! LRCookieAuthentication, userAttributes: [:])
@@ -169,7 +179,7 @@ import Foundation
 			else {
 				callback.callback(nil, error)
 			}
-		})
+		}, challenge: challenge)
 	}
 
 	open func createRequestSession() -> LRSession {
