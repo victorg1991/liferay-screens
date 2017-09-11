@@ -281,7 +281,7 @@ import Foundation
 	open func refreshUserAttributes(_ completed: (([String:AnyObject]?) -> Void)?) -> Bool {
 		let session = self.createRequestSession()
 
-
+		print("created session: \((session.authentication as? LRCookieAuthentication)?.username) \((session.authentication as? LRCookieAuthentication)?.password)")
 		session.callback = LRBlockCallback(
 			success: { obj in
 				guard let attributes = obj as? [String:AnyObject] else {
@@ -293,8 +293,11 @@ import Foundation
 				completed?(attributes)
 			},
 			failure: { err in
+				print("Error retrieving user attrs \(err)")
 				completed?(nil)
 		})
+
+		print("using version \(LiferayServerContext.serverVersion)")
 
 		switch LiferayServerContext.serverVersion {
 		case .v62:
