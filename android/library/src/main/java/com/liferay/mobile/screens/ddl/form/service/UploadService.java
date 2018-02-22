@@ -133,6 +133,7 @@ public class UploadService extends IntentService {
 		JSONObject serviceContextAttributes = new JSONObject();
 		serviceContextAttributes.put("userId", userId);
 		serviceContextAttributes.put("scopeGroupId", groupId);
+		serviceContextAttributes.put("addGuestPermissions", true);
 		return new JSONObjectWrapper(serviceContextAttributes);
 	}
 

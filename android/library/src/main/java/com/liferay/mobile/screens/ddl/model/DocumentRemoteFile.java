@@ -1,5 +1,6 @@
 package com.liferay.mobile.screens.ddl.model;
 
+import com.liferay.mobile.screens.context.LiferayServerContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,6 +13,7 @@ public class DocumentRemoteFile extends DocumentFile {
 	private String uuid;
 	private int version;
 	private String title;
+	private long folderId;
 
 	public DocumentRemoteFile(String json) throws JSONException {
 		JSONObject jsonObject = new JSONObject(json);
@@ -19,6 +21,7 @@ public class DocumentRemoteFile extends DocumentFile {
 		uuid = jsonObject.getString("uuid");
 		version = jsonObject.getInt("version");
 		groupId = jsonObject.getInt("groupId");
+		folderId = jsonObject.optLong("folderId", 0);
 
 		// this is empty if we're retrieving the record
 		title = jsonObject.optString("title");
@@ -26,7 +29,21 @@ public class DocumentRemoteFile extends DocumentFile {
 
 	@Override
 	public String toData() {
-		return "{\"groupId\":" + groupId + ", " + "\"uuid\":\"" + uuid + "\", " + "\"version\":" + version + "}";
+		return "{\"groupId\":"
+			+ groupId
+			+ ", "
+			+ "\"uuid\":\""
+			+ uuid
+			+ "\", "
+			+ "\"version\":"
+			+ version
+			+ ", "
+			+ "\"folderId\":"
+			+ folderId
+			+ ", "
+			+ "\"title\":"
+			+ title
+			+ "}";
 	}
 
 	@Override
@@ -37,5 +54,17 @@ public class DocumentRemoteFile extends DocumentFile {
 	@Override
 	public boolean isValid() {
 		return uuid != null;
+	}
+
+	public String getUrl() {
+		return LiferayServerContext.getServer()
+			+ "/documents/"
+			+ groupId
+			+ "/"
+			+ folderId
+			+ "/"
+			+ title
+			+ "/"
+			+ uuid;
 	}
 }
