@@ -15,3 +15,6 @@ project(':addbookmarkscreenlet').projectDir = new File(settingsDir, '../../sampl
 
 include ':listbookmarkscreenlet'
 project(':listbookmarkscreenlet').projectDir = new File(settingsDir, '../../samples/listbookmarkscreenlet')
+
+include ':liferay-android-sdk'
+project(':liferay-android-sdk').projectDir = new File(settingsDir, '../../../../../liferay-mobile-sdk/android')

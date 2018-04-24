@@ -1,8 +1,17 @@
 package com.liferay.mobile.screens.testapp;
 
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.media.tv.TvInputService;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.customtabs.CustomTabsIntent;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
+import com.liferay.mobile.android.auth.OAuth2SignIn;
+import com.liferay.mobile.android.auth.SessionCallback;
+import com.liferay.mobile.android.service.Session;
+import com.liferay.mobile.android.service.SessionImpl;
 import com.liferay.mobile.screens.cache.Cache;
 import com.liferay.mobile.screens.context.LiferayServerContext;
 import com.liferay.mobile.screens.context.SessionContext;
@@ -11,6 +20,12 @@ import com.liferay.mobile.screens.ddl.form.interactor.DDLFormEvent;
 import com.liferay.mobile.screens.testapp.fullview.LoginFullActivity;
 import com.liferay.mobile.screens.util.LiferayLogger;
 import com.liferay.mobile.screens.viewsets.defaultviews.DefaultAnimation;
+import java.util.ArrayList;
+import net.openid.appauth.AppAuthConfiguration;
+import net.openid.appauth.AuthorizationRequest;
+import net.openid.appauth.AuthorizationService;
+import net.openid.appauth.AuthorizationServiceConfiguration;
+import net.openid.appauth.ResponseTypeValues;
 
 /**
  * @author Silvio Santos
@@ -21,6 +36,25 @@ public class MainActivity extends ThemeActivity implements View.OnClickListener 
 	protected void onCreate(Bundle state) {
 		super.onCreate(state);
 		setContentView(R.layout.activity_main);
+
+		if (getIntent().getData() != null) {
+			try {
+				OAuth2SignIn.resumeAuthorizationFlowWithIntent(this.getApplicationContext(), new SessionImpl("https://liferay-oauth2.wedeploy.io"), getIntent(), new SessionCallback() {
+					@Override
+					public void onSuccess(Session session) {
+						LiferayLogger.d(session.toString());
+					}
+
+					@Override
+					public void onFailure(Exception e) {
+						LiferayLogger.e("fail", e);
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
 
 		if (BuildConfig.DEBUG) {
 			SessionContext.loadStoredCredentialsAndServer(CredentialsStorageBuilder.StorageType.SHARED_PREFERENCES);
@@ -63,6 +97,8 @@ public class MainActivity extends ThemeActivity implements View.OnClickListener 
 	public void onClick(View v) {
 		switch (v.getId()) {
 			case R.id.ddl_form:
+
+				test();
 				start(DDLFormActivity.class);
 				break;
 			case R.id.ddl_list:
@@ -178,8 +214,29 @@ public class MainActivity extends ThemeActivity implements View.OnClickListener 
 				DefaultAnimation.startActivityWithAnimation(this, intentPortlet);
 				break;
 			default:
+				//test();
 				start(LoginActivity.class);
 		}
+	}
+
+	private void test() {
+		AuthorizationServiceConfiguration configuration = new AuthorizationServiceConfiguration(
+			Uri.parse("https://liferay-oauth2.wedeploy.io/o/oauth2/authorize"),
+			Uri.parse("https://liferay-oauth2.wedeploy.io/o/oauth2/token"));
+
+		AuthorizationRequest request = new AuthorizationRequest.Builder(configuration, "54321", ResponseTypeValues.CODE, Uri.parse("my-app://my-app")).build();
+
+		AuthorizationService service = new AuthorizationService(this);
+
+		service.performAuthorizationRequest(request, PendingIntent.getActivity(this, 0, new Intent(this, LoginActivity.class), 0));
+	}
+
+	private void test1() {
+		Session session = new SessionImpl("https://liferay-oauth2.wedeploy.io");
+
+		CustomTabsIntent intent = new CustomTabsIntent.Builder().setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary)).build();
+
+		OAuth2SignIn.signInWithRedirect(this, session, "54321", new ArrayList<String>(), Uri.parse("my-app://my-app"), intent);
 	}
 
 	private void start(Class clasz) {

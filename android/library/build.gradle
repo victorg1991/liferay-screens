@@ -36,10 +36,7 @@ android {
 dependencies {
 	implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-	api(libraries.sdk) {
-		exclude group: 'com.google.android', module: 'android'
-		exclude module: 'android'
-	}
+	api(libraries.sdk)
 	api(libraries.push) {
 		exclude group: 'com.google.android.gms', module: 'play-services'
 		exclude group: 'com.google.android.gms', module: 'play-services-gcm'

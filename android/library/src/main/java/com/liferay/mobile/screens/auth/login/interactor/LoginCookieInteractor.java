@@ -34,7 +34,7 @@ public class LoginCookieInteractor extends BaseLoginInteractor {
 		Session session = SessionContext.createBasicSession(login, password);
 		session.setAuthentication(authentication);
 
-		Session cookieSession = CookieSignIn.signIn(session, authenticator);
+		Session cookieSession = CookieSignIn.signIn(session);
 
 		SessionContext.createCookieSession(cookieSession);
 		CurrentUserConnector userConnector = getCurrentUserConnector(cookieSession);

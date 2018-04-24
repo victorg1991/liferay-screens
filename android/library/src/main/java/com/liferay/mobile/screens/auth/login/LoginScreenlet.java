@@ -17,6 +17,7 @@ package com.liferay.mobile.screens.auth.login;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
+import android.support.customtabs.CustomTabsIntent;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,12 +27,18 @@ import com.liferay.mobile.screens.auth.BasicAuthMethod;
 import com.liferay.mobile.screens.auth.login.interactor.BaseLoginInteractor;
 import com.liferay.mobile.screens.auth.login.interactor.LoginBasicInteractor;
 import com.liferay.mobile.screens.auth.login.interactor.LoginCookieInteractor;
+import com.liferay.mobile.screens.auth.login.interactor.LoginOAuth2RedirectInteractor;
+import com.liferay.mobile.screens.auth.login.interactor.LoginOAuth2ResumeRedirectInteractor;
+import com.liferay.mobile.screens.auth.login.interactor.LoginOAuth2UsernameAndPasswordInteractor;
 import com.liferay.mobile.screens.auth.login.view.LoginViewModel;
 import com.liferay.mobile.screens.base.BaseScreenlet;
 import com.liferay.mobile.screens.context.AuthenticationType;
 import com.liferay.mobile.screens.context.SessionContext;
 import com.liferay.mobile.screens.context.User;
 import com.squareup.okhttp.Authenticator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.liferay.mobile.screens.context.storage.CredentialsStorageBuilder.StorageType;
 
@@ -40,6 +47,7 @@ import static com.liferay.mobile.screens.context.storage.CredentialsStorageBuild
  */
 public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInteractor> implements LoginListener {
 
+	public static final String RESUME_REDIRECT_ACTION = "RESUME_REDIRECT_ACTION";
 	public static final String BASIC_AUTH = "BASIC_AUTH";
 	public static final String LOGIN_SUCCESSFUL = "com.liferay.mobile.screens.auth.login.success";
 	private LoginListener listener;
@@ -49,6 +57,11 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 	private Authenticator authenticator;
 	private boolean shouldHandleCookieExpiration;
 	private int cookieExpirationTime;
+	private List<String> oauth2Scopes = new ArrayList<>();
+	private String oauth2ClientId;
+	private String oauth2ClientSecret;
+	private String oauth2RedirectUrl;
+	private CustomTabsIntent oauth2CustomTabsIntent;
 
 	public LoginScreenlet(Context context) {
 		super(context);
@@ -64,6 +77,10 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 
 	public LoginScreenlet(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
 		super(context, attrs, defStyleAttr, defStyleRes);
+	}
+
+	public void resumeOAuth2RedirectFlow(Intent intent) {
+		performUserAction(RESUME_REDIRECT_ACTION, intent);
 	}
 
 	@Override
@@ -164,6 +181,16 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 		cookieExpirationTime = typedArray.getInt(R.styleable.LoginScreenlet_cookieExpirationTime,
 			CookieAuthentication.COOKIE_EXPIRATION_TIME);
 
+		oauth2ClientId = typedArray.getString(R.styleable.LoginScreenlet_oauth2ClientId);
+		oauth2ClientSecret = typedArray.getString(R.styleable.LoginScreenlet_oauth2ClientSecret);
+		oauth2RedirectUrl = typedArray.getString(R.styleable.LoginScreenlet_oauth2Redirect);
+
+		String scopesString = typedArray.getString(R.styleable.LoginScreenlet_oauth2Scopes);
+
+		if (scopesString != null) {
+			oauth2Scopes = Arrays.asList(scopesString.split(" "));
+		}
+
 		int layoutId = typedArray.getResourceId(R.styleable.LoginScreenlet_layoutId, getDefaultLayoutId());
 
 		View view = LayoutInflater.from(context).inflate(layoutId, null);
@@ -175,8 +202,9 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 
 		loginViewModel.setAuthenticationType(authenticationType);
 
-		if (AuthenticationType.BASIC.equals(authenticationType) || AuthenticationType.COOKIE.equals(
-			authenticationType)) {
+		if (AuthenticationType.BASIC.equals(authenticationType)
+			|| AuthenticationType.COOKIE.equals(authenticationType)
+			|| AuthenticationType.OAUTH2USERNAMEANDPASSWORD.equals(authenticationType)) {
 			int basicAuthMethodId = typedArray.getInt(R.styleable.LoginScreenlet_basicAuthMethod, 0);
 
 			basicAuthMethod = BasicAuthMethod.getValue(basicAuthMethodId);
@@ -190,8 +218,16 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 
 	@Override
 	protected BaseLoginInteractor createInteractor(String actionName) {
+		if (RESUME_REDIRECT_ACTION.equals(actionName)) {
+			return new LoginOAuth2ResumeRedirectInteractor();
+		}
+
 		if (AuthenticationType.COOKIE.equals(authenticationType)) {
 			return new LoginCookieInteractor();
+		} else if (AuthenticationType.OAUTH2USERNAMEANDPASSWORD.equals(authenticationType)) {
+			return new LoginOAuth2UsernameAndPasswordInteractor();
+		} else if (AuthenticationType.OAUTH2REDIRECT.equals(authenticationType)) {
+			return new LoginOAuth2RedirectInteractor();
 		} else {
 			return new LoginBasicInteractor();
 		}
@@ -199,13 +235,22 @@ public class LoginScreenlet extends BaseScreenlet<LoginViewModel, BaseLoginInter
 
 	@Override
 	protected void onUserAction(String userActionName, BaseLoginInteractor interactor, Object... args) {
+		if (RESUME_REDIRECT_ACTION.equals(userActionName)) {
+			interactor.start(args);
+			return;
+		}
+
+		LoginViewModel viewModel = getViewModel();
 		if (AuthenticationType.COOKIE.equals(authenticationType)) {
-			LoginViewModel viewModel = getViewModel();
 			interactor.start(viewModel.getLogin(), viewModel.getPassword(), authenticator, shouldHandleCookieExpiration,
 				cookieExpirationTime);
 		} else if (AuthenticationType.BASIC.equals(authenticationType)) {
-			LoginViewModel viewModel = getViewModel();
 			interactor.start(viewModel.getLogin(), viewModel.getPassword(), viewModel.getBasicAuthMethod());
+		} else if (AuthenticationType.OAUTH2USERNAMEANDPASSWORD.equals(authenticationType)) {
+			interactor.start(viewModel.getLogin(), viewModel.getPassword(), oauth2ClientId, oauth2ClientSecret,
+				oauth2Scopes);
+		} else if (AuthenticationType.OAUTH2REDIRECT.equals(authenticationType)) {
+			interactor.start(oauth2ClientId, oauth2Scopes, oauth2RedirectUrl, oauth2CustomTabsIntent, getContext());
 		}
 	}
 }

@@ -16,6 +16,7 @@ package com.liferay.mobile.screens.testapp;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.widget.EditText;
 import com.liferay.mobile.screens.auth.login.LoginListener;
 import com.liferay.mobile.screens.auth.login.LoginScreenlet;
@@ -37,6 +38,13 @@ public class LoginActivity extends ThemeActivity implements LoginListener {
 		loginScreenlet.setListener(this);
 
 		setDefaultValues();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		loginScreenlet.resumeOAuth2RedirectFlow(data);
 	}
 
 	@Override
